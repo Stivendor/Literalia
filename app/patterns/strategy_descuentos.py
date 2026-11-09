@@ -11,7 +11,7 @@ class SinDescuento(EstrategiaDescuento):
     def calcular_precio_final(self, precio_original: float) -> float:
         return precio_original
 
-
+#despuento en porcentaje decimal 0.10, 0.20, 0.30...
 class DescuentoPromocional(EstrategiaDescuento):
     def __init__(self, porcentaje: float):
         self.porcentaje = porcentaje

@@ -1,9 +1,10 @@
 from fastapi import FastAPI, Depends, HTTPException, status
 from app.database import engine, Base, get_db
-from app.models import Base as modelo_base, LibroModel
+from app.models import Base as modelo_base, LibroModel, UsuarioModel
 from sqlalchemy.orm import Session
-from app.schemas import LibroCreate
+from app.schemas import LibroCreate, LoginRequest, UsuarioCreate, UsuarioResponse
 from app.patterns.factory_libro import CreadorLibroFactory
+from app.security import hash_contrasena, verificar_contrasena
 
 modelo_base.metadata.create_all(bind=engine)
 
@@ -89,3 +90,60 @@ def actualizar_libro(
     db.refresh(db_libro)
 
     return {"mensaje": "Libro actualizado exitosamente", "libro": db_libro}
+
+
+# Usuarios
+@app.post(
+    "/auth/registro",
+    response_model=UsuarioResponse,
+    status_code=status.HTTP_201_CREATED,
+)
+def registrar_usuario(usuario: UsuarioCreate, db: Session = Depends(get_db)):
+    # 1. Verificar si el correo ya está registrado
+    db_usuario = (
+        db.query(UsuarioModel).filter(UsuarioModel.correo == usuario.correo).first()
+    )
+    if db_usuario:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="El correo electrónico ya se encuentra registrado.",
+        )
+    contrasena_segura = hash_contrasena(usuario.contrasena)
+    nuevo_usuario = UsuarioModel(
+        nombre=usuario.nombre,
+        correo=usuario.correo,
+        contrasena=contrasena_segura,
+        estado=True,
+    )
+    db.add(nuevo_usuario)
+    db.commit()
+    db.refresh(nuevo_usuario)
+
+    return nuevo_usuario
+
+
+@app.post("/auth/login", status_code=status.HTTP_200_OK)
+def iniciar_sesion(credenciales: LoginRequest, db: Session = Depends(get_db)):
+    usuario = (
+        db.query(UsuarioModel)
+        .filter(UsuarioModel.correo == credenciales.correo)
+        .first()
+    )
+    if not usuario or not verificar_contrasena(
+        credenciales.contrasena, usuario.contrasena
+    ):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Correo o contraseña incorrectos.",
+        )
+    if not usuario.estado:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="La cuenta se encuentra inactiva.",
+        )
+
+    return {
+        "mensaje": f"Bienvenido de nuevo, {usuario.nombre}",
+        "correo": usuario.correo,
+        "estado": "Autenticado con éxito",
+    }
