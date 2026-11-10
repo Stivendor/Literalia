@@ -11,3 +11,6 @@ literalia.db
 .vscode/
 .idea/
 .env
+.venv/
+.env.*
+!.env.example
