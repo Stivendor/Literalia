@@ -20,7 +20,8 @@ async function api(path, options = {}) {
     const detail = data?.detail
     if (Array.isArray(detail)) throw new Error(detail.map((d) => d.msg).join('. ')) // 422 de FastAPI
     if (detail) throw new Error(detail)
-    throw new Error(res.status >= 500 ? 'No se pudo conectar con el servidor.' : `Error ${res.status}`)
+    // "No se pudo conectar" queda solo para fallas de red (catch de arriba)
+    throw new Error(res.status >= 500 ? `Error del servidor (${res.status}). Intenta de nuevo más tarde.` : `Error ${res.status}`)
   }
   return data
 }
