@@ -19,7 +19,7 @@ export default function Login() {
     setCargando(true)
     try {
       const res = await login(correo, contrasena)
-      guardarUsuario({ correo: res.correo })
+      guardarUsuario({ correo: res.correo, rol: res.rol, token: res.access_token })
       navigate('/inventario', { replace: true })
     } catch (err) {
       setError(err.message)

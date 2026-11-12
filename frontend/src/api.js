@@ -1,13 +1,19 @@
 // Llamadas al backend FastAPI. /api lo reescribe el proxy de Vite (vite.config.js).
 async function api(path, options = {}) {
+  const token = getUsuario()?.token
   let res
   try {
     res = await fetch(`/api${path}`, {
-      headers: { 'Content-Type': 'application/json' },
       ...options,
+      headers: { 'Content-Type': 'application/json', ...(token && { Authorization: `Bearer ${token}` }) },
     })
   } catch {
     throw new Error('No se pudo conectar con el servidor.')
+  }
+  // token vencido (8 h) o inválido: a iniciar sesión otra vez. Sin token, el 401 es credencial incorrecta del login.
+  if (res.status === 401 && token) {
+    cerrarSesion()
+    window.location.replace('/login')
   }
   const data = await res.json().catch(() => null)
   if (!res.ok) {
@@ -19,22 +25,39 @@ async function api(path, options = {}) {
   return data
 }
 
-export const login = (correo, contrasena) =>
-  api('/auth/login', { method: 'POST', body: JSON.stringify({ correo, contrasena }) })
+const enviar = (method, body) => ({ method, body: JSON.stringify(body) })
+
+export const login = (correo, contrasena) => api('/auth/login', enviar('POST', { correo, contrasena }))
 
 export const getLibros = () => api('/libros')
+export const crearLibro = (libro) => api('/libros', enviar('POST', libro))
+export const actualizarLibro = (id, libro) => api(`/libros/${id}`, enviar('PUT', libro))
 
-export const crearLibro = (libro) =>
-  api('/libros', { method: 'POST', body: JSON.stringify(libro) })
+export const registrarUsuario = (usuario) => api('/auth/registro', enviar('POST', usuario))
 
-// ponytail: sesión solo en localStorage, el backend no emite token. Agregar JWT cuando exista.
+export const getMovimientos = () => api('/inventario/movimientos')
+export const crearMovimiento = (movimiento) => api('/inventario/movimientos', enviar('POST', movimiento))
+
+export const getClientes = () => api('/clientes')
+export const crearCliente = (cliente) => api('/clientes', enviar('POST', cliente))
+export const actualizarCliente = (id, cliente) => api(`/clientes/${id}`, enviar('PUT', cliente))
+
+export const getVentas = () => api('/ventas')
+export const getVenta = (id) => api(`/ventas/${id}`)
+export const crearVenta = (venta) => api('/ventas', enviar('POST', venta))
+
+// ponytail: JWT en localStorage (expuesto si hay XSS); pasar a cookie httpOnly si el backend la emite.
+// Sesiones viejas sin token cuentan como no logueado.
 export function getUsuario() {
   try {
-    return JSON.parse(localStorage.getItem('usuario'))
+    const usuario = JSON.parse(localStorage.getItem('usuario'))
+    return usuario?.token ? usuario : null
   } catch {
     return null
   }
 }
+
+export const esAdmin = () => getUsuario()?.rol === 'admin'
 
 export const guardarUsuario = (usuario) => localStorage.setItem('usuario', JSON.stringify(usuario))
 
