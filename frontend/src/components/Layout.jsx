@@ -1,16 +1,18 @@
-import { Bell, BookLock, BookOpen, Euro, House, LogOut, Search, Truck, Users, X } from 'lucide-react'
+import { Bell, BookLock, BookOpen, Euro, House, LogOut, Search, Truck, UserPlus, Users, X } from 'lucide-react'
 import { useState } from 'react'
-import { NavLink, Outlet, useNavigate } from 'react-router-dom'
-import { cerrarSesion, getUsuario } from '../api.js'
+import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom'
+import { cerrarSesion, esAdmin, getUsuario } from '../api.js'
 import Modal from './Modal.jsx'
 
-// ponytail: solo Inventario tiene pantalla; el resto se activa cuando exista su backend
+// ponytail: Dashboard y Proveedores sin pantalla hasta que exista su backend.
+// `buscar` = placeholder del buscador; sin él, la sección no tiene lista y el buscador se deshabilita.
 const NAV = [
   { to: '/dashboard', label: 'Dashboard', icon: House },
-  { to: '/inventario', label: 'Inventario', icon: BookLock, listo: true },
-  { to: '/ventas', label: 'Ventas', icon: Euro },
-  { to: '/clientes', label: 'Clientes', icon: Users },
+  { to: '/inventario', label: 'Inventario', icon: BookLock, listo: true, buscar: 'Buscar por ISBN, título, autor...' },
+  { to: '/ventas', label: 'Ventas', icon: Euro, listo: true, buscar: 'Buscar por # de venta o cliente...' },
+  { to: '/clientes', label: 'Clientes', icon: Users, listo: true, buscar: 'Buscar por nombre, correo o teléfono...' },
   { to: '/proveedores', label: 'Proveedores', icon: Truck },
+  { to: '/usuarios', label: 'Usuarios', icon: UserPlus, listo: true, soloAdmin: true },
 ]
 
 const CONTACTOS = [
@@ -22,8 +24,12 @@ const CONTACTOS = [
 
 export default function Layout() {
   const navigate = useNavigate()
+  const { pathname } = useLocation()
   const usuario = getUsuario()
-  const [busqueda, setBusqueda] = useState('')
+  // la búsqueda pertenece a la sección donde se escribió; al cambiar de sección arranca vacía
+  const [busqueda, setBusqueda] = useState({ ruta: pathname, texto: '' })
+  const texto = busqueda.ruta === pathname ? busqueda.texto : ''
+  const seccion = NAV.find((n) => n.to === pathname)
   const [soporte, setSoporte] = useState(false)
 
   function salir() {
@@ -40,7 +46,7 @@ export default function Layout() {
         </div>
 
         <nav className="nav">
-          {NAV.map(({ to, label, icon: Icon, listo }) =>
+          {NAV.filter((n) => !n.soloAdmin || esAdmin()).map(({ to, label, icon: Icon, listo }) =>
             listo ? (
               <NavLink key={to} to={to} className="nav-item">
                 <Icon size={20} /> {label}
@@ -66,10 +72,11 @@ export default function Layout() {
             <Search size={16} />
             <input
               type="search"
-              placeholder="Buscar por ISBN, título, autor..."
-              aria-label="Buscar libros"
-              value={busqueda}
-              onChange={(e) => setBusqueda(e.target.value)}
+              placeholder={seccion?.buscar ?? 'Buscar...'}
+              aria-label="Buscar"
+              disabled={!seccion?.buscar}
+              value={texto}
+              onChange={(e) => setBusqueda({ ruta: pathname, texto: e.target.value })}
             />
           </label>
 
@@ -80,7 +87,7 @@ export default function Layout() {
               <span className="avatar">{usuario?.correo?.[0]?.toUpperCase()}</span>
               <div className="user-info">
                 <strong>{usuario?.correo}</strong>
-                <small>Administrador</small>{/* TODO backend: el usuario no tiene rol todavía */}
+                <small>{usuario?.rol === 'admin' ? 'Administrador' : 'Vendedor'}</small>
               </div>
               <button className="icon-btn" onClick={salir} aria-label="Cerrar sesión" title="Cerrar sesión">
                 <LogOut size={18} />
@@ -89,7 +96,7 @@ export default function Layout() {
           </div>
         </header>
 
-        <Outlet context={busqueda} />
+        <Outlet context={texto} />
       </div>
 
       <Modal open={soporte} onClose={() => setSoporte(false)} className="modal-soporte" aria-labelledby="soporte-titulo">
