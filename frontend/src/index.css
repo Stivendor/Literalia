@@ -50,18 +50,21 @@ button, input, select { font: inherit; color: inherit; }
   background: var(--navy-950); color: #fff; cursor: pointer;
 }
 .icon-btn--light { background: none; color: var(--muted); width: 32px; height: 32px; }
+.icon-btn:disabled { opacity: .35; cursor: not-allowed; }
+.sr-only { position: absolute; width: 1px; height: 1px; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
 
 /* ---------- Formularios ---------- */
 .field { display: grid; gap: 8px; font-size: 13px; font-weight: 500; color: var(--text); }
-.field input {
+.field :is(input, select), .venta-fila :is(input, select) {
   width: 100%; height: 42px; padding: 0 12px; border: 1px solid var(--border); border-radius: 8px;
   background: var(--input-bg); font-weight: 400;
 }
-.field input:focus { outline: none; border-color: var(--primary); background: #fff; }
+.field :is(input, select):focus, .venta-fila :is(input, select):focus { outline: none; border-color: var(--primary); background: #fff; }
 .input-icon { position: relative; display: block; }
 .input-icon svg { position: absolute; left: 12px; top: 50%; translate: 0 -50%; color: var(--muted); pointer-events: none; }
 .input-icon input { padding-left: 36px; }
 .form-error { color: var(--red); font-size: 13px; }
+.form-ok { color: var(--green); font-size: 13px; }
 
 /* ---------- Login ---------- */
 .login { position: relative; min-height: 100vh; display: grid; place-items: center; padding: 24px 16px; overflow: clip; /* clip, no hidden: hidden se desplaza al mover el foco */ }
@@ -157,6 +160,8 @@ a.nav-item:hover { background: var(--navy-900); color: #fff; }
 .stat-note .down { color: var(--red); }
 
 .card { border-radius: var(--radius); background: #fff; overflow: hidden; }
+.card-form { max-width: 640px; padding: 24px; }
+.card-form .form-grid { grid-template-columns: 1fr 1fr; }
 .card-header, .card-footer { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 16px; padding: 24px; }
 .card-header h2 { font-size: 18px; }
 .card-header p { margin-top: 4px; font-size: 13px; }
@@ -178,3 +183,26 @@ a.nav-item:hover { background: var(--navy-900); color: #fff; }
 .badge--disponible { background: var(--blue-200); color: var(--primary); }
 .badge--bajo-stock { background: var(--blue-300); color: var(--navy-950); }
 .badge--agotado { background: var(--primary); color: #fff; }
+.badge--entrada { background: var(--green-bg); color: var(--green); }
+.badge--salida { background: #f6e1e1; color: var(--red); }
+.tabla .acciones { text-align: right; }
+
+/* ---------- Ventas ---------- */
+.modal-ancho { width: min(760px, calc(100% - 32px)); }
+.stack { display: grid; gap: 20px; }
+.aviso { padding: 16px; border-radius: 8px; background: var(--input-bg); line-height: 1.5; }
+.aviso a { color: var(--primary); font-weight: 600; }
+.venta-items { display: grid; gap: 10px; min-width: 0; margin: 0; padding: 0; border: 0; }
+.venta-items legend { padding: 0; margin-bottom: 8px; font-size: 13px; font-weight: 500; }
+.venta-items > .btn { justify-self: start; }
+.venta-fila { display: grid; grid-template-columns: minmax(0, 1fr) 96px 120px 32px; gap: 10px; align-items: center; }
+.venta-fila .num { text-align: right; }
+.venta-fila--head { font-size: 12px; color: var(--muted); }
+.venta-resumen { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 24px; }
+.venta-resumen .field { width: 160px; }
+.totales { display: grid; gap: 8px; min-width: 240px; margin: 0; justify-self: end; }
+.totales div { display: flex; justify-content: space-between; gap: 24px; }
+.totales dt { color: var(--muted); }
+.totales dd { margin: 0; font-weight: 600; font-variant-numeric: tabular-nums; }
+.totales-total { padding-top: 8px; border-top: 1px solid var(--border); font-size: 16px; }
+.totales-total dt { color: var(--text); font-weight: 600; }
