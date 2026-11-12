@@ -23,26 +23,27 @@ from app.routes_transacciones import router as transacciones_router
 from app.auth_roles import crear_token, requiere_roles
 
 
-# MIGRACIÓN DE ROLES PARA SQLITE
-# Agrega la columna rol si ya existía la tabla usuarios.
-if engine.dialect.name == "sqlite":
-    inspector = inspect(engine)
+# MIGRACIÓN DE ROLES (SQLite en local y Postgres en Vercel)
+# create_all no agrega columnas a tablas existentes: agrega rol si la tabla
+# usuarios ya existía de antes. El SQL sirve igual en ambos motores.
+# ponytail: migración a mano; pasar a Alembic si vienen más cambios de esquema.
+inspector = inspect(engine)
 
-    if inspector.has_table("usuarios"):
-        columnas = [
-            columna["name"]
-            for columna in inspector.get_columns("usuarios")
-        ]
+if inspector.has_table("usuarios"):
+    columnas = [
+        columna["name"]
+        for columna in inspector.get_columns("usuarios")
+    ]
 
-        if "rol" not in columnas:
-            with engine.begin() as conexion:
-                conexion.execute(
-                    text(
-                        "ALTER TABLE usuarios "
-                        "ADD COLUMN rol VARCHAR(20) "
-                        "NOT NULL DEFAULT 'vendedor'"
-                    )
+    if "rol" not in columnas:
+        with engine.begin() as conexion:
+            conexion.execute(
+                text(
+                    "ALTER TABLE usuarios "
+                    "ADD COLUMN rol VARCHAR(20) "
+                    "NOT NULL DEFAULT 'vendedor'"
                 )
+            )
 
 
 # CREAR TABLAS QUE TODAVÍA NO EXISTAN
