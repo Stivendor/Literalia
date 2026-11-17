@@ -1,0 +1,23 @@
+---
+title: "Patrón GoF 5 · Facade (estructural) · cliente API del frontend"
+---
+classDiagram
+    direction LR
+    class Paginas["Login · Inventario · Ventas · Clientes · Usuarios"] {
+        <<Clientes de la fachada>>
+    }
+    class api_js["api.js"] {
+        <<Facade>>
+        +login(correo, contrasena)
+        +getLibros() / crearLibro() / actualizarLibro()
+        +crearMovimiento() / getMovimientos()
+        +getClientes() / crearCliente() / actualizarCliente()
+        +getVentas() / getVenta() / crearVenta()
+        +getUsuario() / esAdmin() / cerrarSesion()
+    }
+    class Subsistema["fetch · localStorage · JWT · errores HTTP"] {
+        <<Subsistema oculto>>
+    }
+
+    Paginas --> api_js : usa
+    api_js --> Subsistema : oculta

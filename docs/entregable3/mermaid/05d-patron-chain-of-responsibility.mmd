@@ -1,0 +1,21 @@
+---
+title: "Patrón GoF 4 · Chain of Responsibility (comportamiento) · autenticación y roles"
+---
+classDiagram
+    direction LR
+    class HTTPBearer {
+        <<Handler 1 · extrae token>>
+    }
+    class usuario_actual {
+        <<Handler 2 · valida JWT y estado>>
+    }
+    class requiere_roles {
+        <<Handler 3 · valida rol>>
+    }
+    class EndpointProtegido {
+        <<Receptor final>>
+    }
+
+    HTTPBearer --> usuario_actual : siguiente
+    usuario_actual --> requiere_roles : siguiente
+    requiere_roles --> EndpointProtegido : siguiente

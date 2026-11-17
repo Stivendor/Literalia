@@ -1,0 +1,25 @@
+---
+title: "Actividades · HU-04 Registrar cliente (Vendedor / Administrador)"
+---
+flowchart TB
+    ini(( )) --> a1["Vendedor pulsa «Nuevo cliente» en Clientes"]
+    a1 --> a2["Ingresa nombre, correo (opcional) y teléfono"]
+    a2 --> a3["SPA envía POST /api/clientes"]
+    a3 --> d1{"¿Token válido y rol<br/>admin o vendedor?"}
+    d1 -- "No" --> e1["401 / 403"] --> fin2((( )))
+    d1 -- "Sí" --> a4["Pydantic valida ClienteCreate<br/>(nombre 1-150, correo EmailStr)"]
+    a4 --> a5["Se crea ClienteModel e INSERT en clientes"]
+    a5 --> d2{"¿Correo duplicado?<br/>(IntegrityError)"}
+    d2 -- "Sí" --> e2["ROLLBACK · 409 «Ya existe un cliente con ese correo»"] --> a2
+    d2 -- "No" --> a6["COMMIT · 201 con el cliente"]
+    a6 --> a7["SPA cierra el formulario y actualiza la lista"]
+    a7 --> fin((( )))
+
+    classDef usuario fill:#FFF2CC,stroke:#D6B656,color:#000
+    classDef spa fill:#DAE8FC,stroke:#6C8EBF,color:#000
+    classDef api fill:#D5E8D4,stroke:#82B366,color:#000
+    classDef err fill:#F8CECC,stroke:#B85450,color:#000
+    class a1,a2 usuario
+    class a3,a7 spa
+    class a4,a5,a6 api
+    class e1,e2 err

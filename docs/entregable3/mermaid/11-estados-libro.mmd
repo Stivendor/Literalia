@@ -1,0 +1,41 @@
+---
+title: "Transición de estados · Libro (stock)"
+---
+stateDiagram-v2
+    direction LR
+
+    [*] --> Evaluar : POST /libros<br/>(Factory crea el libro)
+
+    state Evaluar <<choice>>
+
+    state Activo {
+        Disponible
+        BajoStock : Bajo Stock
+        Agotado
+    }
+
+    Evaluar --> Disponible : [stock > stock_minimo]
+    Evaluar --> BajoStock : [0 < stock ≤ stock_minimo]
+    Evaluar --> Agotado : [stock = 0]
+
+    Disponible --> BajoStock : venta / salida<br/>[stock ≤ stock_minimo]
+    Disponible --> Agotado : venta / salida<br/>[stock = 0]
+    BajoStock --> Agotado : venta / salida<br/>[stock = 0]
+    BajoStock --> Disponible : entrada<br/>[stock > stock_minimo]
+    Agotado --> BajoStock : entrada<br/>[stock ≤ stock_minimo]
+    Agotado --> Disponible : entrada<br/>[stock > stock_minimo]
+
+    Activo --> Inactivo : activo = false
+    Inactivo --> [*]
+
+    note right of Agotado
+        Regla de negocio: el stock nunca es negativo.
+        modificar_stock() solo actualiza si stock + diferencia ≥ 0;
+        si no, la venta o salida se rechaza con 409.
+    end note
+
+    note left of Inactivo
+        El campo activo existe en LibroModel y la API
+        ya filtra por él, pero el MVP no expone un
+        endpoint para desactivar libros.
+    end note

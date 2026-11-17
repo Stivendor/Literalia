@@ -1,0 +1,33 @@
+---
+title: "Actividades · HU-03 Registrar movimiento de inventario (Administrador)"
+---
+flowchart TB
+    ini(( )) --> a1["Administrador pulsa «Registrar movimiento»"]
+    a1 --> a2["Selecciona libro, tipo (entrada / salida),<br/>cantidad y motivo"]
+    a2 --> a3["SPA envía POST /api/inventario/movimientos"]
+    a3 --> d1{"¿Token válido y<br/>rol = admin?"}
+    d1 -- "No" --> e1["401 / 403"] --> fin2((( )))
+    d1 -- "Sí" --> a4["Pydantic valida MovimientoCreate"]
+    a4 --> a5["InventarioRepository.obtener_libro()"]
+    a5 --> d2{"¿Libro existe<br/>y está activo?"}
+    d2 -- "No" --> e2["404 «Libro no encontrado o inactivo»"] --> fin2
+    d2 -- "Sí" --> d3{"¿Tipo?"}
+    d3 -- "entrada" --> a6a["diferencia = + cantidad"]
+    d3 -- "salida" --> a6b["diferencia = − cantidad"]
+    a6a --> a7["modificar_stock(): UPDATE atómico<br/>WHERE stock + diferencia ≥ 0"]
+    a6b --> a7
+    a7 --> d4{"¿Fila actualizada?<br/>(stock suficiente)"}
+    d4 -- "No" --> e3["ROLLBACK · 409 «Stock insuficiente»"] --> fin2
+    d4 -- "Sí" --> a8["registrar_movimiento() en movimientos_inventario"]
+    a8 --> a9["COMMIT · 201 con id del movimiento"]
+    a9 --> a10["SPA refresca tarjetas, tabla e historial"]
+    a10 --> fin((( )))
+
+    classDef usuario fill:#FFF2CC,stroke:#D6B656,color:#000
+    classDef spa fill:#DAE8FC,stroke:#6C8EBF,color:#000
+    classDef api fill:#D5E8D4,stroke:#82B366,color:#000
+    classDef err fill:#F8CECC,stroke:#B85450,color:#000
+    class a1,a2 usuario
+    class a3,a10 spa
+    class a4,a5,a6a,a6b,a7,a8,a9 api
+    class e1,e2,e3 err

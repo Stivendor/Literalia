@@ -1,0 +1,25 @@
+---
+title: "C4 · Nivel 1 · Contexto del sistema Literalia"
+---
+flowchart TB
+    admin["👤 <b>Administrador</b><br/><small>[Persona]</small><br/>Gestiona catálogo, stock y cuentas de vendedor. También puede vender."]
+    vendedor["👤 <b>Vendedor</b><br/><small>[Persona]</small><br/>Consulta inventario, registra clientes y ventas."]
+    comprador["👤 <b>Cliente comprador</b><br/><small>[Persona externa]</small><br/>Compra libros en la librería. No usa el sistema."]
+
+    literalia["<b>Literalia</b><br/><small>[Sistema de software]</small><br/>Gestión de librería: inventario, ventas, clientes y usuarios con roles."]
+
+    proveedores["<b>Gestión de proveedores</b><br/><small>[Sistema · fuera del MVP]</small><br/>Aparece en el menú como «Próximamente»."]
+
+    admin -- "Inicia sesión, registra libros,<br/>movimientos de stock y vendedores<br/><small>[HTTPS]</small>" --> literalia
+    vendedor -- "Inicia sesión, consulta inventario,<br/>registra clientes y ventas<br/><small>[HTTPS]</small>" --> literalia
+    comprador -. "Es atendido por" .-> vendedor
+    literalia -. "Integración futura" .-> proveedores
+
+    classDef person fill:#08427B,stroke:#073B6F,color:#fff
+    classDef external fill:#999999,stroke:#8A8A8A,color:#fff
+    classDef system fill:#1168BD,stroke:#0B4884,color:#fff
+    classDef future fill:#eeeeee,stroke:#999,color:#666,stroke-dasharray: 5 5
+    class admin,vendedor person
+    class comprador external
+    class literalia system
+    class proveedores future

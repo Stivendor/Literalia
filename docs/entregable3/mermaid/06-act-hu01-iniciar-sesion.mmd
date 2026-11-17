@@ -1,0 +1,31 @@
+---
+title: "Actividades · HU-01 Iniciar sesión con rol"
+---
+flowchart TB
+    ini(( )) --> a1["Usuario abre /login"]
+    a1 --> d0{"¿Ya hay sesión<br/>con token?"}
+    d0 -- "Sí" --> a10
+    d0 -- "No" --> a2["Usuario ingresa correo y contraseña"]
+    a2 --> a3["SPA envía POST /api/auth/login"]
+    a3 --> a4["API busca el usuario por correo"]
+    a4 --> d1{"¿Credenciales<br/>válidas? (bcrypt)"}
+    d1 -- "No" --> e1["API responde 401<br/>SPA muestra «Correo o contraseña incorrectos»"]
+    e1 --> a2
+    d1 -- "Sí" --> d2{"¿Cuenta activa?"}
+    d2 -- "No" --> e2["API responde 403<br/>«La cuenta se encuentra inactiva»"]
+    e2 --> fin2((( )))
+    d2 -- "Sí" --> a5["API genera JWT HS256<br/>sub = id, exp = 8 h"]
+    a5 --> a6["API responde 200 con rol y access_token"]
+    a6 --> a7["SPA guarda {correo, rol, token}<br/>en localStorage"]
+    a7 --> a10["SPA redirige a /inventario"]
+    a10 --> a11["Layout muestra el menú según el rol<br/>(Usuarios solo para admin)"]
+    a11 --> fin((( )))
+
+    classDef usuario fill:#FFF2CC,stroke:#D6B656,color:#000
+    classDef spa fill:#DAE8FC,stroke:#6C8EBF,color:#000
+    classDef api fill:#D5E8D4,stroke:#82B366,color:#000
+    classDef err fill:#F8CECC,stroke:#B85450,color:#000
+    class a1,a2 usuario
+    class a3,a7,a10,a11 spa
+    class a4,a5,a6 api
+    class e1,e2 err

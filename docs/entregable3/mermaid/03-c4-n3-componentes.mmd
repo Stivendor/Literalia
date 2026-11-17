@@ -1,0 +1,56 @@
+---
+title: "C4 · Nivel 3 · Componentes de la API REST (backend/)"
+---
+flowchart TB
+    spa["<b>Aplicación web (SPA)</b><br/><small>[Contenedor: React]</small>"]
+    db[("<b>Base de datos</b><br/><small>[PostgreSQL / SQLite]</small>")]
+
+    subgraph api ["API REST · FastAPI"]
+        direction TB
+        subgraph ctrl [" "]
+            direction LR
+            mainc["<b>Controlador Libros y Auth</b><br/><small>[Componente: main.py]</small><br/>GET/POST/PUT /libros · POST /auth/login · POST /auth/registro"]
+            routes["<b>Router Transacciones</b><br/><small>[Componente: routes_transacciones.py]</small><br/>/inventario · /inventario/movimientos · /clientes · /ventas"]
+        end
+        subgraph svc [" "]
+            direction LR
+            auth["<b>Autenticación y roles</b><br/><small>[Componente: auth_roles.py]</small><br/>crear_token · usuario_actual · requiere_roles<br/><i>Chain of Responsibility</i>"]
+            sec["<b>Seguridad de contraseñas</b><br/><small>[Componente: security.py]</small><br/>hash / verificación bcrypt"]
+            schemas["<b>DTOs de validación</b><br/><small>[Componente: schemas.py · schemas_transacciones.py]</small><br/>Pydantic: LibroCreate, LoginRequest, VentaCreate…"]
+            factory["<b>Fábrica de libros</b><br/><small>[Componente: patterns/factory_libro.py]</small><br/><i>Factory Method</i>"]
+            strategy["<b>Cálculo de descuentos</b><br/><small>[Componente: patterns/strategy_descuentos.py]</small><br/><i>Strategy</i>"]
+        end
+        subgraph data [" "]
+            direction LR
+            repos["<b>Repositorios</b><br/><small>[Componente: repositories.py]</small><br/>InventarioRepository · VentaRepository"]
+            models["<b>Modelos ORM</b><br/><small>[Componente: models.py]</small><br/>LibroModel, UsuarioModel, ClienteModel, VentaModel…"]
+            database["<b>Configuración de BD</b><br/><small>[Componente: database.py]</small><br/>engine · SessionLocal · get_db<br/><i>Singleton</i>"]
+        end
+    end
+
+    spa -- "JSON/HTTPS" --> mainc
+    spa -- "JSON/HTTPS" --> routes
+    mainc --> auth
+    mainc --> sec
+    mainc --> schemas
+    mainc --> factory
+    mainc --> models
+    routes --> auth
+    routes --> schemas
+    routes --> strategy
+    routes --> repos
+    auth --> models
+    repos --> models
+    models --> database
+    mainc -. "Depends(get_db)" .-> database
+    routes -. "Depends(get_db)" .-> database
+    database -- "SQL" --> db
+
+    classDef ext fill:#438DD5,stroke:#3C7FC0,color:#fff
+    classDef comp fill:#85BBF0,stroke:#5D82A8,color:#000
+    class spa,db ext
+    class mainc,routes,auth,sec,schemas,factory,strategy,repos,models,database comp
+    style api fill:#ffffff,stroke:#444,stroke-dasharray: 6 4
+    style ctrl fill:none,stroke:none
+    style svc fill:none,stroke:none
+    style data fill:none,stroke:none

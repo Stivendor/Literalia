@@ -1,0 +1,46 @@
+---
+title: "Actividades · HU-05 Registrar venta con descuento (Vendedor / Administrador)"
+---
+flowchart TB
+    ini(( )) --> a1["Vendedor pulsa «Nueva venta»"]
+    a1 --> a2["SPA carga clientes y libros con stock > 0"]
+    a2 --> a3["Selecciona el cliente"]
+    a3 --> a4["Agrega un libro y su cantidad"]
+    a4 --> d0{"¿Agregar otro libro?"}
+    d0 -- "Sí" --> a4
+    d0 -- "No" --> a5["Ingresa % de descuento (0-100)"]
+    a5 --> a6["SPA muestra vista previa de subtotal y total"]
+    a6 --> a7["Pulsa «Registrar venta» · POST /api/ventas"]
+    a7 --> d1{"¿Token válido y rol<br/>admin o vendedor?"}
+    d1 -- "No" --> e1["401 / 403"] --> fin2((( )))
+    d1 -- "Sí" --> a8["Pydantic valida VentaCreate"]
+    a8 --> d2{"¿Cliente activo y<br/>libros sin repetir?"}
+    d2 -- "No" --> e2["404 / 422"] --> fin2
+    d2 -- "Sí" --> a9["Tomar siguiente ítem (ordenado por libro_id)"]
+    a9 --> a10["InventarioRepository.modificar_stock(−cantidad)"]
+    a10 --> d3{"¿Stock suficiente?"}
+    d3 -- "No" --> e3["ROLLBACK · 409 «Stock insuficiente para …»"] --> fin2
+    d3 -- "Sí" --> a11["importe = precio × cantidad<br/>subtotal += importe"]
+    a11 --> d4{"¿Quedan ítems?"}
+    d4 -- "Sí" --> a9
+    d4 -- "No" --> d5{"¿porcentaje = 0?"}
+    d5 -- "Sí" --> s1["Estrategia: SinDescuento"]
+    d5 -- "No" --> s2["Estrategia: DescuentoPromocional(%)"]
+    s1 --> a12["CalculadoraDescuento.aplicar_descuento(subtotal)<br/>descuento = subtotal − total"]
+    s2 --> a12
+    a12 --> a13["VentaRepository.crear() · flush para obtener id"]
+    a13 --> a14["Por cada ítem: agregar_detalle() y<br/>registrar_movimiento('salida', 'Venta #id')"]
+    a14 --> a15["COMMIT · 201 {id, subtotal, descuento, total}"]
+    a15 --> a16["SPA cierra el modal y recarga el historial de ventas"]
+    a16 --> fin((( )))
+
+    classDef usuario fill:#FFF2CC,stroke:#D6B656,color:#000
+    classDef spa fill:#DAE8FC,stroke:#6C8EBF,color:#000
+    classDef api fill:#D5E8D4,stroke:#82B366,color:#000
+    classDef err fill:#F8CECC,stroke:#B85450,color:#000
+    classDef pat fill:#E1D5E7,stroke:#9673A6,color:#000
+    class a1,a3,a4,a5,a7 usuario
+    class a2,a6,a16 spa
+    class a8,a9,a10,a11,a13,a14,a15 api
+    class s1,s2,a12 pat
+    class e1,e2,e3 err

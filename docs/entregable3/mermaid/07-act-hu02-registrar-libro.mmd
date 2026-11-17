@@ -1,0 +1,26 @@
+---
+title: "Actividades · HU-02 Registrar libro en el catálogo (Administrador)"
+---
+flowchart TB
+    ini(( )) --> a1["Administrador pulsa «Nuevo libro» en Inventario"]
+    a1 --> a2["Diligencia ISBN, título, autor, categoría,<br/>precio, stock y stock mínimo"]
+    a2 --> a3["SPA envía POST /api/libros<br/>con Authorization: Bearer"]
+    a3 --> d1{"¿Token válido y<br/>rol = admin?"}
+    d1 -- "No" --> e1["401 / 403"] --> fin2((( )))
+    d1 -- "Sí" --> a4["Pydantic valida LibroCreate"]
+    a4 --> d2{"¿Ya existe un libro<br/>con ese ISBN?"}
+    d2 -- "Sí" --> e2["400 «Ya existe un libro registrado con este ISBN»"] --> a2
+    d2 -- "No" --> a5["CreadorLibroFactory.crear_libro(datos)<br/>aplica valores por defecto"]
+    a5 --> a6["Se construye LibroModel e INSERT en libros"]
+    a6 --> a7["API responde 201 con el libro"]
+    a7 --> a8["SPA recarga el listado y calcula el estado<br/>(Disponible / Bajo Stock / Agotado)"]
+    a8 --> fin((( )))
+
+    classDef usuario fill:#FFF2CC,stroke:#D6B656,color:#000
+    classDef spa fill:#DAE8FC,stroke:#6C8EBF,color:#000
+    classDef api fill:#D5E8D4,stroke:#82B366,color:#000
+    classDef err fill:#F8CECC,stroke:#B85450,color:#000
+    class a1,a2 usuario
+    class a3,a8 spa
+    class a4,a5,a6,a7 api
+    class e1,e2 err

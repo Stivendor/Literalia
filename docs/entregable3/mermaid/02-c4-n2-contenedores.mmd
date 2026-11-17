@@ -1,0 +1,28 @@
+---
+title: "C4 · Nivel 2 · Contenedores de Literalia"
+---
+flowchart TB
+    admin["👤 <b>Administrador</b><br/><small>[Persona]</small>"]
+    vendedor["👤 <b>Vendedor</b><br/><small>[Persona]</small>"]
+
+    subgraph literalia ["Literalia · Sistema"]
+        direction TB
+        spa["<b>Aplicación web (SPA)</b><br/><small>[Contenedor: React 19 + Vite 8 + React Router 7]</small><br/>Pantallas de Login, Inventario, Ventas, Clientes y Usuarios. Guarda el JWT en localStorage."]
+        api["<b>API REST</b><br/><small>[Contenedor: Python · FastAPI + SQLAlchemy 2 + Pydantic 2]</small><br/>Reglas de negocio, autenticación JWT con roles, inventario, clientes y ventas."]
+        db[("<b>Base de datos</b><br/><small>[Contenedor: PostgreSQL (Neon) en producción · SQLite en local]</small><br/>libros, usuarios, clientes, ventas, detalles_venta, movimientos_inventario")]
+        cli["<b>Script crear_admin.py</b><br/><small>[Contenedor: Python CLI]</small><br/>Crea el primer administrador."]
+    end
+
+    admin -- "Usa<br/><small>[HTTPS · navegador]</small>" --> spa
+    vendedor -- "Usa<br/><small>[HTTPS · navegador]</small>" --> spa
+    spa -- "Llama /api/*<br/><small>[JSON/HTTPS · Bearer JWT]</small>" --> api
+    api -- "Lee y escribe<br/><small>[SQL · SQLAlchemy / psycopg]</small>" --> db
+    cli -- "Inserta usuario rol=admin<br/><small>[SQL · SQLAlchemy]</small>" --> db
+
+    classDef person fill:#08427B,stroke:#073B6F,color:#fff
+    classDef container fill:#438DD5,stroke:#3C7FC0,color:#fff
+    classDef database fill:#438DD5,stroke:#3C7FC0,color:#fff
+    class admin,vendedor person
+    class spa,api,cli container
+    class db database
+    style literalia fill:#ffffff,stroke:#444,stroke-dasharray: 6 4
