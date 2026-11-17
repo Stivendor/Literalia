@@ -16,10 +16,10 @@
 ## 0. Portada
 
 - **Nombre del proyecto:** Literalia — Sistema de gestión para librería
-- **Integrantes:** [COMPLETAR nombres completos] (en el historial del repositorio aparecen: Stiven Atehortúa Ochoa, Brayan, dahianamon12)
-- **Docente:** [COMPLETAR]
+- **Integrantes:** Stiven Atehortua Ochoa, Dahiana Montañez Herrera y Brayan David Martinez Patron
+- **Docente:** Anibal Antonio Torres Cañas
 - **Curso:** Diseño de Sistemas de Información
-- **Fecha:** [COMPLETAR]
+- **Fecha:** 17/11/2026
 - **Institución:** Instituto Tecnológico Metropolitano (ITM), Medellín
 
 ---
