@@ -202,6 +202,7 @@ def actualizar_libro(
 def registrar_usuario(
     usuario: UsuarioCreate,
     db: Session = Depends(get_db),
+    admin=Depends(requiere_roles("admin")),
 ):
     db_usuario = (
         db.query(UsuarioModel)
