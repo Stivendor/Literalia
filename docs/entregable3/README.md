@@ -36,7 +36,7 @@ Lo que el código evidencia sobre la evolución del proyecto:
 | **Actores / roles** | Administrador y Vendedor quedaron como el campo `UsuarioModel.rol` y como guardas en front (`SoloAdmin`) y back (`requiere_roles`). |
 | **Story mapping y MVP** | La primera versión entregable cubre las épicas Autenticación, Catálogo/Inventario, Clientes y Ventas (HU-01 a HU-05). Dashboard, Proveedores, recuperación de contraseña y gestión completa de usuarios quedan para siguientes versiones (aparecen deshabilitados o marcados como TODO en el código). |
 | **Diagrama de clases inicial** | Se refinó en el nivel 4 del C4: el dominio quedó en 6 entidades ORM (`Libro`, `Usuario`, `Cliente`, `Venta`, `DetalleVenta`, `MovimientoInventario`) y se agregaron clases de diseño (repositorios, Strategy, Factory). |
-| **Prototipo Figma** | Las pantallas implementadas (Login, Inventario, Ventas, Clientes, Usuarios) conservan la navegación lateral, las tarjetas de resumen y los modales del prototipo. [COMPLETAR: enlace a Figma y 1-2 diferencias entre Figma y la implementación.] |
+| **Prototipo Figma** | Las pantallas implementadas (Login, Inventario, Ventas, Clientes, Usuarios) conservan la navegación lateral, las tarjetas de resumen y los modales del prototipo. Diferencias: plataforma web en lugar de escritorio, clientes en lugar de socios con membresías, y dashboard, proveedores y editoriales fuera del flujo principal. [Figma](https://www.figma.com/design/Si5V50K5E4s56zZ9BUBVF2/Untitled?nodeid=0-1&t=BSPuvcAhj71QRyoc-1) |
 
 ### Historias de usuario del MVP implementadas
 
@@ -341,7 +341,7 @@ En producción hay **un proyecto de Vercel con dos services** (`vercel.json`): e
 ## 10. Anexos
 
 - **Repositorio:** https://github.com/Stivendor/Literalia
-- **Figma:** [COMPLETAR]
+- **Figma:** https://www.figma.com/design/Si5V50K5E4s56zZ9BUBVF2/Untitled?nodeid=0-1&t=BSPuvcAhj71QRyoc-1
 - **Diagramas editables:**
   - draw.io (los 15 diagramas, una página por diagrama): [abrir en draw.io][drawio] · [archivo en el repositorio](literalia-entregable3.drawio)
   - Mermaid: carpeta [`mermaid/`](mermaid/) y enlaces de Mermaid Live en cada sección
