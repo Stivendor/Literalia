@@ -1,0 +1,33 @@
+---
+title: "Transición de estados · Sesión de usuario (JWT)"
+---
+stateDiagram-v2
+    direction LR
+
+    [*] --> SinSesion
+
+    SinSesion : Sin sesión
+    SinSesion : /login · localStorage sin token
+
+    Autenticando : Autenticando
+    Autenticando : POST /auth/login
+
+    SinSesion --> Autenticando : enviar correo y contraseña
+    Autenticando --> SinSesion : 401 credenciales inválidas<br/>403 cuenta inactiva
+    Autenticando --> RolSesion : 200 + access_token<br/>/ guardarUsuario()
+
+    state RolSesion <<choice>>
+    RolSesion --> Administrador : [rol = admin]
+    RolSesion --> Vendedor : [rol = vendedor]
+
+    state Autenticado {
+        Administrador : Administrador
+        Administrador : Inventario, Ventas, Clientes, Usuarios
+        Vendedor : Vendedor
+        Vendedor : Inventario (lectura), Ventas, Clientes
+    }
+
+    Autenticado --> SinSesion : cerrar sesión<br/>/ cerrarSesion()
+    Autenticado --> TokenVencido : pasan 8 h (exp del JWT)
+    TokenVencido : Token vencido
+    TokenVencido --> SinSesion : siguiente petición responde 401<br/>/ limpiar localStorage y redirigir a /login

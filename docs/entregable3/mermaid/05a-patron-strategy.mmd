@@ -1,0 +1,29 @@
+---
+title: "Patrón GoF 1 · Strategy (comportamiento) · descuentos en ventas"
+---
+classDiagram
+    direction LR
+    class registrar_venta_endpoint["registrar_venta() · Cliente"] {
+        <<routes_transacciones.py>>
+    }
+    class CalculadoraDescuento {
+        <<Contexto>>
+        -EstrategiaDescuento estrategia
+        +aplicar_descuento(precio) float
+    }
+    class EstrategiaDescuento {
+        <<abstract · Strategy>>
+        +calcular_precio_final(precio)* float
+    }
+    class SinDescuento {
+        <<ConcreteStrategy>>
+    }
+    class DescuentoPromocional {
+        <<ConcreteStrategy>>
+        -float porcentaje
+    }
+
+    registrar_venta_endpoint --> CalculadoraDescuento : usa
+    CalculadoraDescuento o--> EstrategiaDescuento
+    EstrategiaDescuento <|-- SinDescuento
+    EstrategiaDescuento <|-- DescuentoPromocional

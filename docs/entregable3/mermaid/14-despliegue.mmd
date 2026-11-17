@@ -1,0 +1,52 @@
+---
+title: "Diagrama de despliegue · Literalia (producción en Vercel + Neon)"
+---
+flowchart LR
+    subgraph PC ["«device» PC del usuario"]
+        subgraph NAV ["«execution environment» Navegador web"]
+            spaart["«artifact»<br/>SPA compilada<br/>index.html + JS/CSS (vite build)"]
+            ls["«artifact»<br/>localStorage<br/>{correo, rol, token JWT}"]
+        end
+    end
+
+    subgraph GH ["«cloud» GitHub"]
+        repo["«artifact»<br/>Repositorio stivendor/literalia<br/>frontend/ · backend/ · vercel.json"]
+    end
+
+    subgraph VC ["«cloud» Vercel"]
+        edge["«node» Vercel Edge Network<br/>rewrites de vercel.json<br/>/api/(.#42;) → backend · /(.#42;) → frontend"]
+        subgraph FSV ["Service frontend · CDN"]
+            dist["«artifact»<br/>frontend/dist"]
+        end
+        subgraph BSV ["Service backend · Functions Python"]
+            fn["«artifact»<br/>main:app (FastAPI ASGI)<br/>backend/app/* · requirements.txt"]
+            env["«config»<br/>JWT_SECRET · DATABASE_URL"]
+        end
+    end
+
+    subgraph NEON ["«cloud» Neon Postgres"]
+        pg[("«database»<br/>literalia<br/>6 tablas")]
+    end
+
+    NAV -- "HTTPS :443" --> edge
+    edge -- "/(.#42;)" --> dist
+    edge -- "/api/(.#42;) sin prefijo /api" --> fn
+    fn -- "TCP :5432 TLS · postgresql+psycopg" --> pg
+    repo -- "push → preview<br/>merge a main → producción" --> VC
+
+    subgraph LOCAL ["«device» PC desarrollador · local"]
+        vite["«execution environment»<br/>Vite dev server :5173<br/>proxy /api → 127.0.0.1:8000"]
+        uv["«execution environment»<br/>Uvicorn :8000<br/>main:app --reload"]
+        sqlite[("«database»<br/>SQLite literalia.db")]
+        adm["«artifact»<br/>crear_admin.py"]
+        vite --> uv --> sqlite
+        adm --> sqlite
+    end
+
+    classDef dev fill:#F5F5F5,stroke:#666,color:#000
+    classDef art fill:#FFF2CC,stroke:#D6B656,color:#000
+    classDef db fill:#FFE6CC,stroke:#D79B00,color:#000
+    classDef nd fill:#DAE8FC,stroke:#6C8EBF,color:#000
+    class spaart,ls,repo,dist,fn,env,adm art
+    class pg,sqlite db
+    class edge,vite,uv nd

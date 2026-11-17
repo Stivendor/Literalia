@@ -1,0 +1,68 @@
+---
+title: "Diagrama de componentes UML · Literalia"
+---
+flowchart LR
+    subgraph FE ["«subsystem» Frontend SPA"]
+        direction TB
+        router["«component»<br/><b>Router y guardas</b><br/>main.jsx · Protegida, SoloAdmin"]
+        layout["«component»<br/><b>Layout</b><br/>menú por rol, buscador, cerrar sesión"]
+        paginas["«component»<br/><b>Páginas</b><br/>Login · Inventario · Ventas · Clientes · Usuarios"]
+        ui["«component»<br/><b>UI común</b><br/>Modal · FilaMensaje · usePaginacion"]
+        util["«component»<br/><b>Utilidades de dominio</b><br/>libros.js: estadoLibro, toCSV, formatos"]
+        apijs["«component» «Facade»<br/><b>Cliente API</b><br/>api.js: fetch, JWT, errores, sesión"]
+        router --> layout --> paginas
+        paginas --> ui
+        paginas --> util
+        paginas --> apijs
+        router --> apijs
+    end
+
+    subgraph BE ["«subsystem» Backend API"]
+        direction TB
+        iauth(("IAuth<br/>/auth"))
+        ilib(("ILibros<br/>/libros"))
+        iinv(("IInventario<br/>/inventario"))
+        icli(("IClientes<br/>/clientes"))
+        iven(("IVentas<br/>/ventas"))
+
+        mauth["«component»<br/><b>Autenticación</b><br/>main.py (auth) · auth_roles.py · security.py"]
+        mcat["«component»<br/><b>Catálogo</b><br/>main.py (libros) · factory_libro.py"]
+        mtra["«component»<br/><b>Transacciones</b><br/>routes_transacciones.py · strategy_descuentos.py"]
+        mval["«component»<br/><b>Validación</b><br/>schemas.py · schemas_transacciones.py"]
+        mper["«component»<br/><b>Persistencia</b><br/>repositories.py · models.py · database.py"]
+
+        iauth --- mauth
+        ilib --- mcat
+        iinv --- mtra
+        icli --- mtra
+        iven --- mtra
+
+        mcat -. "«use» requiere_roles" .-> mauth
+        mtra -. "«use» requiere_roles" .-> mauth
+        mauth -.-> mval
+        mcat -.-> mval
+        mtra -.-> mval
+        mauth -.-> mper
+        mcat -.-> mper
+        mtra -.-> mper
+    end
+
+    isql(("ISQL"))
+    db[("«database»<br/><b>PostgreSQL (Neon) / SQLite</b>")]
+
+    apijs -. "HTTPS JSON" .-> iauth
+    apijs -.-> ilib
+    apijs -.-> iinv
+    apijs -.-> icli
+    apijs -.-> iven
+    mper -. "SQLAlchemy" .-> isql
+    isql --- db
+
+    classDef comp fill:#DAE8FC,stroke:#6C8EBF,color:#000
+    classDef bcomp fill:#D5E8D4,stroke:#82B366,color:#000
+    classDef iface fill:#ffffff,stroke:#333,color:#000
+    classDef dbs fill:#FFE6CC,stroke:#D79B00,color:#000
+    class router,layout,paginas,ui,util,apijs comp
+    class mauth,mcat,mtra,mval,mper bcomp
+    class iauth,ilib,iinv,icli,iven,isql iface
+    class db dbs

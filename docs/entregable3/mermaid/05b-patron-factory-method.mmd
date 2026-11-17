@@ -1,0 +1,18 @@
+---
+title: "Patrón GoF 2 · Factory Method (creacional) · creación de libros"
+---
+classDiagram
+    direction LR
+    class crear_libro_endpoint["crear_libro() · Cliente"] {
+        <<main.py>>
+    }
+    class CreadorLibroFactory {
+        <<Creator>>
+        +crear_libro(datos: dict)$ LibroBase
+    }
+    class LibroBase {
+        <<Product>>
+    }
+
+    crear_libro_endpoint --> CreadorLibroFactory : solicita
+    CreadorLibroFactory ..> LibroBase : «create»

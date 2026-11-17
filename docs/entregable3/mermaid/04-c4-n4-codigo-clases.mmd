@@ -1,0 +1,130 @@
+---
+title: "C4 · Nivel 4 · Código: dominio, repositorios y patrones (backend/app)"
+---
+classDiagram
+    direction TB
+
+    namespace Dominio_ORM_models_py {
+        class LibroModel {
+            +int id
+            +str isbn «unique»
+            +str titulo
+            +str autor
+            +str categoria
+            +float precio
+            +int stock
+            +int stock_minimo
+            +bool activo
+        }
+        class UsuarioModel {
+            +int id
+            +str nombre
+            +str correo «unique»
+            +str contrasena «hash bcrypt»
+            +bool estado
+            +str rol «admin | vendedor»
+        }
+        class ClienteModel {
+            +int id
+            +str nombre
+            +str correo «unique, opcional»
+            +str telefono
+            +bool activo
+        }
+        class VentaModel {
+            +int id
+            +int cliente_id
+            +int usuario_id
+            +Decimal subtotal
+            +Decimal descuento
+            +Decimal total
+            +datetime fecha
+        }
+        class DetalleVentaModel {
+            +int id
+            +int venta_id
+            +int libro_id
+            +int cantidad
+            +Decimal precio_unitario
+            +Decimal subtotal
+        }
+        class MovimientoInventarioModel {
+            +int id
+            +int libro_id
+            +int usuario_id
+            +str tipo «entrada | salida»
+            +int cantidad
+            +str motivo
+            +datetime fecha
+        }
+    }
+
+    namespace Persistencia_repositories_py {
+        class InventarioRepository {
+            -Session db
+            +obtener_libro(libro_id) LibroModel
+            +modificar_stock(libro_id, diferencia) bool
+            +registrar_movimiento(libro_id, usuario_id, tipo, cantidad, motivo) MovimientoInventarioModel
+        }
+        class VentaRepository {
+            -Session db
+            +crear(cliente_id, usuario_id, subtotal, descuento, total) VentaModel
+            +agregar_detalle(venta_id, libro_id, cantidad, precio, subtotal) DetalleVentaModel
+        }
+    }
+
+    namespace Strategy_strategy_descuentos_py {
+        class EstrategiaDescuento {
+            <<abstract>>
+            +calcular_precio_final(precio_original: float)* float
+        }
+        class SinDescuento {
+            +calcular_precio_final(precio_original: float) float
+        }
+        class DescuentoPromocional {
+            -float porcentaje
+            +calcular_precio_final(precio_original: float) float
+        }
+        class CalculadoraDescuento {
+            -EstrategiaDescuento estrategia
+            +aplicar_descuento(precio_original: float) float
+        }
+    }
+
+    namespace Factory_factory_libro_py {
+        class CreadorLibroFactory {
+            +crear_libro(datos: dict)$ LibroBase
+        }
+        class LibroBase {
+            +str isbn
+            +str titulo
+            +str autor
+            +str categoria
+            +float precio
+            +int stock
+            +int stock_minimo
+        }
+    }
+
+    %% Relaciones del dominio (llaves foráneas)
+    VentaModel "*" --> "1" ClienteModel : cliente_id
+    VentaModel "*" --> "1" UsuarioModel : usuario_id (vendedor)
+    VentaModel "1" *-- "1..*" DetalleVentaModel : contiene
+    DetalleVentaModel "*" --> "1" LibroModel : libro_id
+    MovimientoInventarioModel "*" --> "1" LibroModel : libro_id
+    MovimientoInventarioModel "*" --> "1" UsuarioModel : usuario_id
+
+    %% Repositorios
+    InventarioRepository ..> LibroModel : UPDATE stock atómico
+    InventarioRepository ..> MovimientoInventarioModel : crea
+    VentaRepository ..> VentaModel : crea
+    VentaRepository ..> DetalleVentaModel : crea
+
+    %% Strategy
+    EstrategiaDescuento <|-- SinDescuento
+    EstrategiaDescuento <|-- DescuentoPromocional
+    CalculadoraDescuento o--> EstrategiaDescuento : estrategia
+
+    %% Factory
+    CreadorLibroFactory ..> LibroBase : «create»
+    LibroBase ..> LibroModel : se mapea a

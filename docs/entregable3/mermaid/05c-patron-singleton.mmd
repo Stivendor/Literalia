@@ -1,0 +1,16 @@
+---
+title: "Patrón GoF 3 · Singleton (creacional) · conexión a la base de datos"
+---
+classDiagram
+    direction LR
+    class database_py["database.py · módulo"] {
+        <<Singleton por módulo>>
+        +engine Engine$
+        +SessionLocal sessionmaker$
+        +get_db() Session
+    }
+    class Endpoints {
+        <<Depends(get_db)>>
+    }
+
+    Endpoints ..> database_py : una sola instancia de engine
